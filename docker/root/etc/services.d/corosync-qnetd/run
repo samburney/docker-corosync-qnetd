@@ -1,0 +1,6 @@
+#!/usr/bin/with-contenv bash
+
+echo "Starting corosync-qnetd"
+/usr/bin/corosync-qnetd -f $COROSYNC_QNETD_OPTIONS
+
+exit 1

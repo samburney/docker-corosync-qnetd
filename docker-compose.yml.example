@@ -1,0 +1,14 @@
+services:
+  corosync-qnetd:
+    image: 'local/corosync-qnetd:latest'
+    build: '.'
+    restart: 'unless-stopped'
+    environment:
+      - TZ=Australia/Adelaide
+    volumes:
+      - './data/root:/root'
+      - './data/etc/corosync-qnetd:/etc/corosync/qnetd'
+      - './data/etc/ssh-keys:/etc/ssh/keys'
+    ports:
+      - '22:22/tcp'
+      - '5403:5403/tcp'

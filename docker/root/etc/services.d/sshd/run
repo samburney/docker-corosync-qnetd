@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv bash
+
+mkdir -p /run/sshd
+chmod 0755 /run/sshd
+
+# Check if host_keys exist, if not, regenerate them now
+if [ ! -f "/etc/ssh/keys/ssh_host_ecdsa_key" -a ! -f "/etc/ssh/keys/ssh_host_ed25519_key" -a ! -f "/etc/ssh/keys/ssh_host_rsa_key" ] ; then
+    /usr/bin/ssh-keygen -A
+    mkdir -p /etc/ssh/keys
+    mv /etc/ssh/ssh_host_* /etc/ssh/keys
+fi
+
+# Configure SSHD to use these keys
+for i in /etc/ssh/keys/ssh_host_*key ; do
+    SSHD_OPTS="${SSHD_OPTS} -h ${i}"
+done
+
+# Start SSHD in foreground and configure logging
+SSHD_OPTS="${SSHD_OPTS} -D"
+
+echo "Starting OpenSSH Server..."
+
+exec \
+    /usr/sbin/sshd ${SSHD_OPTS}
+
+exit 1
