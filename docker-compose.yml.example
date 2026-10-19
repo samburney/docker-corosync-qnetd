@@ -5,10 +5,14 @@ services:
     restart: 'unless-stopped'
     environment:
       - TZ=Australia/Adelaide
+      # Extra options passed to corosync-qnetd, see "man corosync-qnetd"
+      - COROSYNC_QNETD_OPTIONS=
     volumes:
       - './data/root:/root'
       - './data/etc/corosync-qnetd:/etc/corosync/qnetd'
       - './data/etc/ssh-keys:/etc/ssh/keys'
     ports:
-      - '22:22/tcp'
+      # SSH is only needed while running "pvecm qdevice setup". It is mapped
+      # to 2222 to avoid clashing with the host's own sshd; see README.md.
+      - '2222:22/tcp'
       - '5403:5403/tcp'
