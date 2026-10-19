@@ -4,4 +4,4 @@
 echo "Starting corosync-qnetd"
 
 # shellcheck disable=SC2086
-exec /usr/bin/corosync-qnetd -f ${COROSYNC_QNETD_OPTIONS}
+exec s6-setuidgid coroqnetd /usr/bin/corosync-qnetd -f ${COROSYNC_QNETD_OPTIONS}
