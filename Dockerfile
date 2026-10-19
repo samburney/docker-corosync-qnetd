@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/baseimage-debian:bookworm
+FROM ghcr.io/linuxserver/baseimage-debian:trixie
 LABEL maintainer="Sam Burney <sam@burney.io>"
 
 RUN apt-get update \
