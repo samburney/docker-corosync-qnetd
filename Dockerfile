@@ -5,7 +5,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends corosync-qnetd openssh-server \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/ssh/ssh_host_*
+    && rm -f /etc/ssh/ssh_host_* \
+    && rm -rf /etc/corosync/qnetd/nssdb
 
 COPY docker/root /
 

@@ -1,8 +1,9 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-# Mirrors the Debian corosync-qnetd postinst and systemd unit, since the
-# NSS database in the image is hidden when a volume is mounted over it.
+# Mirrors the Debian corosync-qnetd postinst and systemd unit. The image
+# ships without an NSS database so each deployment generates its own CA and
+# server keys on first start.
 dir=/etc/corosync/qnetd
 db="${dir}/nssdb"
 user=coroqnetd
