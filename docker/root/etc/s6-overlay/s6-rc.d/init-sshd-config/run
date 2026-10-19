@@ -21,6 +21,10 @@ chown root:root /root /root/.ssh
 chmod 0700 /root/.ssh
 auth=/root/.ssh/authorized_keys
 touch "${auth}"
+# Make sure appended keys start on their own line
+if [[ -s "${auth}" && -n "$(tail -c1 "${auth}")" ]]; then
+    echo >> "${auth}"
+fi
 while IFS= read -r line; do
     line="${line#"${line%%[![:space:]]*}"}"
     line="${line%"${line##*[![:space:]]}"}"
