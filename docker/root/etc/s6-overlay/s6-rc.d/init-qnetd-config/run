@@ -18,8 +18,8 @@ fi
 # qnetd only needs group read on the database; root keeps ownership so
 # certificates can be signed over SSH (pvecm qdevice setup)
 chgrp "${user}" "${db}" "${db}/cert9.db" "${db}/key4.db"
-chmod g+rx "${db}"
-chmod g+r "${db}/cert9.db" "${db}/key4.db"
+chmod g=rx "${db}"
+chmod g=r "${db}/cert9.db" "${db}/key4.db"
 
 # Equivalent of RuntimeDirectory=corosync-qnetd, RuntimeDirectoryMode=0770
 mkdir -p /run/corosync-qnetd
