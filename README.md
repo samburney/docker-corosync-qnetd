@@ -67,8 +67,15 @@ docker compose logs tailscale   # open the login URL, unless TS_AUTHKEY is set
 ```
 
 - qnetd (5403) and SSH (22) are reachable on the sidecar's tailnet IP or
-  MagicDNS name, and not on the Docker host. Every cluster node must be on
-  the tailnet.
+  MagicDNS name, and not on the Docker host.
+- Cluster nodes reach qnetd either by running Tailscale themselves or
+  through a subnet router. A subnet router must **not** run on the cluster
+  (for example as a VM or LXC on one of the nodes). If it did, losing that
+  node would also cut the survivor off from qnetd, and the survivor would
+  lose quorum, which is the failure the QDevice exists to prevent.
+- The example uses kernel networking (`/dev/net/tun`,
+  `TS_USERSPACE=false`). With userspace networking qnetd still works, but
+  `corosync-qnetd-tool -l` shows every client as `127.0.0.1`.
 - SSH listens on the standard port 22 there and doesn't clash with the host's
   sshd, so skip step 3 below.
 - Tailscale state is kept in `data/tailscale/state`, so the node keeps its

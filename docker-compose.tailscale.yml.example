@@ -8,11 +8,16 @@ services:
     environment:
       TZ: 'Australia/Adelaide'
       TS_STATE_DIR: '/var/lib/tailscale'
+      # Kernel networking, so qnetd sees the nodes' real tailnet addresses
+      # rather than 127.0.0.1 (as it would with userspace networking)
+      TS_USERSPACE: 'false'
       # Optional: an auth key logs in non-interactively. Without one, follow
       # the login URL printed by "docker compose logs tailscale".
       # TS_AUTHKEY: 'tskey-auth-...'
     volumes:
       - './data/tailscale/state:/var/lib/tailscale'
+    devices:
+      - '/dev/net/tun:/dev/net/tun'
     cap_add:
       - 'net_admin'
       - 'net_raw'
