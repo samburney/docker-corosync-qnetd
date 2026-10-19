@@ -4,7 +4,8 @@ LABEL maintainer="Sam Burney <sam@burney.io>"
 RUN apt-get update \
     && apt-get install -y --no-install-recommends corosync-qnetd openssh-server \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/ssh/ssh_host_*
 
 COPY docker/root /
 

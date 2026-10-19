@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo "Starting corosync-qnetd"
+
+# shellcheck disable=SC2086
+exec /usr/bin/corosync-qnetd -f ${COROSYNC_QNETD_OPTIONS}

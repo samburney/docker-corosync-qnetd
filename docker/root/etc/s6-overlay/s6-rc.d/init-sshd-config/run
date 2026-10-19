@@ -1,0 +1,14 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+mkdir -p /run/sshd /etc/ssh/keys
+chmod 0755 /run/sshd
+
+# Generate any missing host keys into the persistent keys volume
+for type in ecdsa ed25519 rsa; do
+    key="/etc/ssh/keys/ssh_host_${type}_key"
+    if [[ ! -f "${key}" ]]; then
+        echo "Generating SSH host key ${key}"
+        /usr/bin/ssh-keygen -q -N "" -t "${type}" -f "${key}"
+    fi
+done
