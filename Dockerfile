@@ -15,3 +15,6 @@ EXPOSE 5403/tcp
 VOLUME /etc/corosync/qnetd
 VOLUME /etc/ssh/keys
 VOLUME /root
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+    CMD corosync-qnetd-tool -s >/dev/null || exit 1
