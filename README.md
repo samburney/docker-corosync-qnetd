@@ -51,6 +51,31 @@ Both are kept in volumes and reused on later starts.
 
 The container reports itself healthy when `corosync-qnetd-tool -s` succeeds.
 
+## Running on a tailnet (Tailscale sidecar)
+
+A QDevice is a good fit for Tailscale. The qnetd host can sit anywhere, such
+as another site or a cheap VPS, and still reach the cluster nodes over the
+tailnet. You don't have to publish ports or open firewall holes.
+`docker-compose.tailscale.yml.example` runs a `tailscale/tailscale` container
+and puts qnetd in its network namespace
+(`network_mode: service:tailscale`):
+
+```sh
+cp docker-compose.tailscale.yml.example docker-compose.yml
+docker compose up -d --build
+docker compose logs tailscale   # open the login URL, unless TS_AUTHKEY is set
+```
+
+- qnetd (5403) and SSH (22) are reachable on the sidecar's tailnet IP or
+  MagicDNS name, and not on the Docker host. Every cluster node must be on
+  the tailnet.
+- SSH listens on the standard port 22 there and doesn't clash with the host's
+  sshd, so skip step 3 below.
+- Tailscale state is kept in `data/tailscale/state`, so the node keeps its
+  identity and IP across restarts. Disable key expiry for the machine in the
+  Tailscale admin console, otherwise the QDevice drops off the tailnet when
+  the key expires.
+
 ## Proxmox VE setup
 
 1. Install the QDevice client on **every** cluster node:
@@ -79,8 +104,9 @@ The container reports itself healthy when `corosync-qnetd-tool -s` succeeds.
    `ssh -p 2222 root@192.0.2.10 true` should return without asking for a password.
 
 3. `pvecm` always connects on port 22. If SSH is mapped to 2222 as in the
-   example, add this to `/root/.ssh/config` on the node you run the setup
-   from (replace the address with your container host):
+   default example (not needed with the Tailscale example), add this to
+   `/root/.ssh/config` on the node you run the setup from (replace the
+   address with your container host):
 
    ```
    Host 192.0.2.10
@@ -90,7 +116,7 @@ The container reports itself healthy when `corosync-qnetd-tool -s` succeeds.
 4. Run the setup from that node:
 
    ```sh
-   pvecm qdevice setup 192.0.2.10
+   pvecm qdevice setup 192.0.2.10   # or the tailnet IP
    pvecm status   # should now list a Qdevice vote
    ```
 
