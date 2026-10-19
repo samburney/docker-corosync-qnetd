@@ -47,6 +47,7 @@ Both are kept in volumes and reused on later starts.
 | ------------------------ | ----------------------------------------------------------------- |
 | `TZ`                     | Timezone                                                          |
 | `COROSYNC_QNETD_OPTIONS` | Extra arguments for `corosync-qnetd` (see `man corosync-qnetd`)    |
+| `AUTHORIZED_KEYS`        | Public keys allowed to SSH in as root, one per line               |
 
 The container reports itself healthy when `corosync-qnetd-tool -s` succeeds.
 
@@ -59,15 +60,23 @@ The container reports itself healthy when `corosync-qnetd-tool -s` succeeds.
    ```
 
 2. Authorise the root SSH key of the node you will run the setup from. Root
-   password login is disabled, so the key has to be placed in the volume:
+   password login is disabled, so there is no root password to type. Put the
+   node's public key (`cat /root/.ssh/id_rsa.pub`) in `AUTHORIZED_KEYS` in
+   `docker-compose.yml`, then recreate the container with `docker compose up -d`:
 
-   ```sh
-   mkdir -p data/root/.ssh
-   cat id_rsa.pub >> data/root/.ssh/authorized_keys   # the node's /root/.ssh/id_rsa.pub
-   sudo chown -R root:root data/root/.ssh
-   sudo chmod 700 data/root/.ssh
-   sudo chmod 600 data/root/.ssh/authorized_keys
+   ```yaml
+   environment:
+     AUTHORIZED_KEYS: |
+       ssh-rsa AAAA... root@pve1
    ```
+
+   Keys are added to `/root/.ssh/authorized_keys` on every start if they are
+   missing. Keys already in the file are kept, so taking a key out of the
+   variable doesn't revoke it. To revoke a key, edit
+   `data/root/.ssh/authorized_keys` as well.
+
+   Check it works before running the setup:
+   `ssh -p 2222 root@192.0.2.10 true` should return without asking for a password.
 
 3. `pvecm` always connects on port 22. If SSH is mapped to 2222 as in the
    example, add this to `/root/.ssh/config` on the node you run the setup

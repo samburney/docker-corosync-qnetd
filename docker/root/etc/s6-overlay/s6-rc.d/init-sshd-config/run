@@ -12,3 +12,23 @@ for type in ecdsa ed25519 rsa; do
         /usr/bin/ssh-keygen -q -N "" -t "${type}" -f "${key}"
     fi
 done
+
+# Add keys from AUTHORIZED_KEYS (one per line) to root's authorized_keys.
+# Existing entries are left alone, so removing a key from the variable
+# does not remove it from the file.
+mkdir -p /root/.ssh
+chown root:root /root /root/.ssh
+chmod 0700 /root/.ssh
+auth=/root/.ssh/authorized_keys
+touch "${auth}"
+while IFS= read -r line; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "${line}" || "${line}" == \#* ]] && continue
+    if ! grep -qxF -- "${line}" "${auth}"; then
+        echo "Adding authorized key: ${line:0:40}..."
+        echo "${line}" >> "${auth}"
+    fi
+done <<< "${AUTHORIZED_KEYS}"
+chown root:root "${auth}"
+chmod 0600 "${auth}"

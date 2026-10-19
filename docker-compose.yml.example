@@ -4,9 +4,14 @@ services:
     build: '.'
     restart: 'unless-stopped'
     environment:
-      - TZ=Australia/Adelaide
+      TZ: 'Australia/Adelaide'
       # Extra options passed to corosync-qnetd, see "man corosync-qnetd"
-      - COROSYNC_QNETD_OPTIONS=
+      COROSYNC_QNETD_OPTIONS: ''
+      # Public keys allowed to SSH in as root, one per line (e.g. the
+      # Proxmox node's /root/.ssh/id_rsa.pub). Added on every start.
+      # AUTHORIZED_KEYS: |
+      #   ssh-rsa AAAA... root@pve1
+      #   ssh-rsa AAAA... root@pve2
     volumes:
       - './data/root:/root'
       - './data/etc/corosync-qnetd:/etc/corosync/qnetd'
