@@ -1,14 +1,21 @@
-FROM ghcr.io/linuxserver/baseimage-debian:bookworm
+FROM ghcr.io/linuxserver/baseimage-debian:trixie
 LABEL maintainer="Sam Burney <sam@burney.io>"
 
 RUN apt-get update \
-    && apt-get install -y corosync-qnetd openssh-server \
-    && apt-get clean
+    && apt-get install -y --no-install-recommends corosync-qnetd openssh-server \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/ssh/ssh_host_* \
+    && rm -rf /etc/corosync/qnetd/nssdb
 
 COPY docker/root /
 
 EXPOSE 22/tcp
-EXPOSE 5403//tcp
+EXPOSE 5403/tcp
 
+VOLUME /etc/corosync/qnetd
 VOLUME /etc/ssh/keys
 VOLUME /root
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+    CMD corosync-qnetd-tool -s >/dev/null || exit 1

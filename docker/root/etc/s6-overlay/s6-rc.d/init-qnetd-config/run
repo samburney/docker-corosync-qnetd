@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# Mirrors the Debian corosync-qnetd postinst and systemd unit. The image
+# ships without an NSS database so each deployment generates its own CA and
+# server keys on first start.
+dir=/etc/corosync/qnetd
+db="${dir}/nssdb"
+user=coroqnetd
+
+mkdir -p "${dir}"
+
+if [[ ! -f "${db}/cert9.db" ]]; then
+    echo "Initialising qnetd NSS database in ${db}"
+    /usr/bin/corosync-qnetd-certutil -i -G
+fi
+
+# qnetd only needs group read on the database; root keeps ownership so
+# certificates can be signed over SSH (pvecm qdevice setup)
+chgrp "${user}" "${db}" "${db}/cert9.db" "${db}/key4.db"
+chmod g=rx "${db}"
+chmod g=r "${db}/cert9.db" "${db}/key4.db"
+
+# Equivalent of RuntimeDirectory=corosync-qnetd, RuntimeDirectoryMode=0770
+mkdir -p /run/corosync-qnetd
+chown "${user}:${user}" /run/corosync-qnetd
+chmod 0770 /run/corosync-qnetd

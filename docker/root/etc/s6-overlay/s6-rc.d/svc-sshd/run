@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+SSHD_OPTS=""
+for i in /etc/ssh/keys/ssh_host_*_key; do
+    SSHD_OPTS="${SSHD_OPTS} -h ${i}"
+done
+
+echo "Starting OpenSSH Server"
+
+# -D: foreground, -e: log to stderr so it reaches docker logs
+# shellcheck disable=SC2086
+exec /usr/sbin/sshd -D -e ${SSHD_OPTS}

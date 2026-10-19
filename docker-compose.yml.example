@@ -4,11 +4,20 @@ services:
     build: '.'
     restart: 'unless-stopped'
     environment:
-      - TZ=Australia/Adelaide
+      TZ: 'Australia/Adelaide'
+      # Extra options passed to corosync-qnetd, see "man corosync-qnetd"
+      COROSYNC_QNETD_OPTIONS: ''
+      # Public keys allowed to SSH in as root, one per line (e.g. the
+      # Proxmox node's /root/.ssh/id_rsa.pub). Added on every start.
+      # AUTHORIZED_KEYS: |
+      #   ssh-rsa AAAA... root@pve1
+      #   ssh-rsa AAAA... root@pve2
     volumes:
       - './data/root:/root'
       - './data/etc/corosync-qnetd:/etc/corosync/qnetd'
       - './data/etc/ssh-keys:/etc/ssh/keys'
     ports:
-      - '22:22/tcp'
+      # SSH is only needed while running "pvecm qdevice setup". It is mapped
+      # to 2222 to avoid clashing with the host's own sshd; see README.md.
+      - '2222:22/tcp'
       - '5403:5403/tcp'

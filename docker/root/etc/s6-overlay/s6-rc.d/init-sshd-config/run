@@ -1,0 +1,38 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+mkdir -p /run/sshd /etc/ssh/keys
+chmod 0755 /run/sshd
+
+# Generate any missing host keys into the persistent keys volume
+for type in ecdsa ed25519 rsa; do
+    key="/etc/ssh/keys/ssh_host_${type}_key"
+    if [[ ! -f "${key}" ]]; then
+        echo "Generating SSH host key ${key}"
+        /usr/bin/ssh-keygen -q -N "" -t "${type}" -f "${key}"
+    fi
+done
+
+# Add keys from AUTHORIZED_KEYS (one per line) to root's authorized_keys.
+# Existing entries are left alone, so removing a key from the variable
+# does not remove it from the file.
+mkdir -p /root/.ssh
+chown root:root /root /root/.ssh
+chmod 0700 /root/.ssh
+auth=/root/.ssh/authorized_keys
+touch "${auth}"
+# Make sure appended keys start on their own line
+if [[ -s "${auth}" && -n "$(tail -c1 "${auth}")" ]]; then
+    echo >> "${auth}"
+fi
+while IFS= read -r line; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "${line}" || "${line}" == \#* ]] && continue
+    if ! grep -qxF -- "${line}" "${auth}"; then
+        echo "Adding authorized key: ${line:0:40}..."
+        echo "${line}" >> "${auth}"
+    fi
+done <<< "${AUTHORIZED_KEYS}"
+chown root:root "${auth}"
+chmod 0600 "${auth}"

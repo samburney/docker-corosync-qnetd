@@ -1,0 +1,45 @@
+services:
+  tailscale:
+    image: 'tailscale/tailscale:stable'
+    container_name: 'tailscale-corosync-qnetd'
+    # Becomes the machine name on the tailnet
+    hostname: 'corosync-qnetd'
+    restart: 'unless-stopped'
+    environment:
+      TZ: 'Australia/Adelaide'
+      TS_STATE_DIR: '/var/lib/tailscale'
+      # Kernel networking, so qnetd sees the nodes' real tailnet addresses
+      # rather than 127.0.0.1 (as it would with userspace networking)
+      TS_USERSPACE: 'false'
+      # Optional: an auth key logs in non-interactively. Without one, follow
+      # the login URL printed by "docker compose logs tailscale".
+      # TS_AUTHKEY: 'tskey-auth-...'
+    volumes:
+      - './data/tailscale/state:/var/lib/tailscale'
+    devices:
+      - '/dev/net/tun:/dev/net/tun'
+    cap_add:
+      - 'net_admin'
+      - 'net_raw'
+
+  corosync-qnetd:
+    image: 'local/corosync-qnetd:latest'
+    build: '.'
+    restart: 'unless-stopped'
+    environment:
+      TZ: 'Australia/Adelaide'
+      # Extra options passed to corosync-qnetd, see "man corosync-qnetd"
+      COROSYNC_QNETD_OPTIONS: ''
+      # Public keys allowed to SSH in as root, one per line (e.g. the
+      # Proxmox node's /root/.ssh/id_rsa.pub). Added on every start.
+      # AUTHORIZED_KEYS: |
+      #   ssh-rsa AAAA... root@pve1
+    volumes:
+      - './data/root:/root'
+      - './data/etc/corosync-qnetd:/etc/corosync/qnetd'
+      - './data/etc/ssh-keys:/etc/ssh/keys'
+    # Share the tailscale container's network: qnetd (5403) and SSH (22) are
+    # reachable on its tailnet IP only, so no ports are published on the host
+    network_mode: 'service:tailscale'
+    depends_on:
+      - 'tailscale'
